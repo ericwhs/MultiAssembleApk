@@ -1,0 +1,5 @@
+<resources>
+
+    <string name="market_name">default market</string>
+    <string name="action_settings">Settings</string>
+</resources>

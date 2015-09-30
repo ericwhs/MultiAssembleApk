@@ -1,0 +1,92 @@
+apply plugin: 'com.android.application'
+def buildTime() {
+    def date = new Date()
+    def formattedDate = date.format('yyyyMMdd')
+    return formattedDate
+}
+
+android {
+    compileSdkVersion 22
+    buildToolsVersion "23.0.1"
+
+    defaultConfig {
+        applicationId "aragon.com.assembleapkdemo"
+        minSdkVersion 11
+        targetSdkVersion 22
+        versionCode 1
+        versionName "1.0"
+    }
+
+    //签名
+    signingConfigs {
+        debug {
+
+        }
+
+        release {
+            storeFile file("aragon.jks")
+            storePassword "6868688"
+            keyAlias "aragon"
+            keyPassword "6868688"
+        }
+    }
+
+
+    buildTypes {
+
+        debug {
+            buildConfigField "boolean", "ISDEBUG", "true"
+            resValue "string" ,"hello_world","hello_debug"
+            signingConfig signingConfigs.debug
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+        release {
+            buildConfigField "boolean", "ISDEBUG", "false"//BuildConfig.java
+            resValue "string" ,"hello_world","hello_release"//generated.xml
+            zipAlignEnabled true
+            minifyEnabled false
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    /***个性化定制 方法一***start**/
+    productFlavors {
+        google{
+            def google = rootProject.ext.google
+            applicationId google.packageName//进程名称
+            versionName baidu.versionName
+            resValue 'string', "app_name", google.appName//apk 桌面显示名称
+        }
+        baidu{
+            def baidu = rootProject.ext.baidu
+            applicationId baidu.packageName//进程名称
+            versionName baidu.versionName
+            resValue 'string', "app_name", baidu.appName//apk 桌面显示名称
+        }
+    }
+    /***个性化定制***end**/
+
+    //渠道设置
+    productFlavors.all {
+        flavor -> flavor.manifestPlaceholders = [MY_CHANNEL_VALUE: name]
+    }
+
+    //修改包名
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            if (output.outputFile != null && output.outputFile.name.endsWith('.apk')) {
+                def apkFile = new File(
+                        output.outputFile.getParent(),
+                        "oppo_${variant.flavorName}_v${variant.versionName}_${buildTime()}_${variant.buildType.name}.apk")
+                output.outputFile = apkFile
+            }
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile project(':library')
+}
